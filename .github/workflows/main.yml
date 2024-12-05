@@ -1,28 +1,35 @@
-image: python:3.10  # Use the Python 3.10 Docker image for the pipeline
+name: Deploy Python Telegram Bot
 
-variables:
-  PIP_DISABLE_PIP_VERSION_CHECK: "1"
-  PIP_NO_CACHE_DIR: "1"
+on:
+  push:
+    branches:
+      - main  # Trigger the action on pushes to the main branch
 
-stages:
-  - deploy
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Specify the environment (Ubuntu latest)
 
-before_script:
-  # Create and activate a virtual environment
-  - python -m venv venv
-  - source venv/bin/activate
-  # Upgrade pip to the latest version
-  - pip install --upgrade pip
-  # Install required dependencies
-  - pip install python-telegram-bot
-  # Make the binary executable (if present in the repo)
-  - chmod +x kalaji || echo "Binary not found, skipping."
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3  # Checkout the repository code
 
-deploy:
-  stage: deploy
-  script:
-    # Run the bot script (replace with your actual script name)
-    - python kalaji.py
-  only:
-    - main  # Run this pipeline only for changes on the main branch
-    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m venv venv  # Create virtual environment
+        source venv/bin/activate  # Activate virtual environment
+        pip install --upgrade pip  # Upgrade pip to the latest version
+        pip install python-telegram-bot  # Install the required dependencies
+
+    - name: Make the binary executable (if present)
+      run: chmod +x kalaji || echo "Binary not found, skipping."
+
+    - name: Run the bot script
+      run: |
+        source venv/bin/activate  # Ensure the virtual environment is activated
+        python kalaji.py  # Run your bot script
+
